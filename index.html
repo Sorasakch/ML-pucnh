@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>เกมชกมวย Player VS AI</title>
+  <style>
+    body {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      font-family: Arial, sans-serif;
+    }
+
+    #enemy-health {
+      width: 100%;
+      max-width: 300px;
+      height: 50px;
+      background-color: #ddd;
+      margin: 20px 0;
+      border-radius: 15px;
+      position: relative;
+    }
+
+    #health-bar {
+      width: 100%;
+      height: 100%;
+      background-color: red;
+      border-radius: 15px;
+      transition: width 0.3s;
+    }
+
+    #health-number {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 20px;
+      font-weight: bold;
+      color: white;
+      pointer-events: none;
+    }
+
+    #timer {
+      font-size: 24px;
+      margin: 20px;
+    }
+
+    #webcam-container {
+      position: relative;
+      width: 640px;
+      height: 480px;
+    }
+
+    #webcam {
+      transform: scaleX(-1);
+    }
+
+    #overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 640px;
+      height: 480px;
+      pointer-events: none;
+    }
+
+    #game-result {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.8);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      color: white;
+      font-size: 36px;
+      display: none;
+      z-index: 1000;
+    }
+
+    #restart-button {
+      margin-top: 20px;
+      padding: 10px 20px;
+      font-size: 18px;
+      cursor: pointer;
+      border: none;
+      border-radius: 5px;
+      background-color: #28a745;
+      color: white;
+    }
+
+    #restart-button:hover {
+      background-color: #218838;
+    }
+  </style>
+</head>
+
+<body>
+  <h1>เกมชกมวย Player VS AI</h1>
+  <div id="enemy-health">
+    <div id="health-bar"></div>
+    <span id="health-number">100</span>
+  </div>
+  <div id="timer">60</div>
+  <div id="webcam-container">
+    <video id="webcam" width="640" height="480" autoplay muted></video>
+    <canvas id="overlay" width="640" height="480"></canvas>
+  </div>
+
+  <div id="game-result">
+    <div id="result-message">คุณชนะ!</div>
+    <button id="restart-button">เริ่มเกมใหม่</button>
+  </div>
+
+  <script src="punchGame.js"></script>
+</body>
+
+</html>

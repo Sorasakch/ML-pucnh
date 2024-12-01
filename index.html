@@ -52,8 +52,8 @@
 
     #webcam-container {
       position: relative;
-      width: 1280px;
-      height: 720px;
+      width: 720px;
+      height: 480px;
     }
 
     #webcam {
@@ -64,7 +64,7 @@
     }
 
     #overlay {
-      transform: scaleX(1);
+      transform: scaleX(-1);
       /* เปลี่ยนจาก -1 เป็น 1 */
       position: absolute;
       top: 0;
@@ -120,7 +120,9 @@
       /* เพิ่มขนาดกว้าง */
       height: 100px;
       /* เพิ่มขนาดสูง */
-      background-color: red;
+      background-color: transparent;
+      /* พื้นหลังโปร่งใส */
+
       border-radius: 50%;
       /* ทำให้เป็นวงกลม */
       z-index: 10;
@@ -138,8 +140,8 @@
   </div>
   <div id="timer">60</div>
   <div id="webcam-container">
-    <video id="webcam" width="1280" height="720" autoplay muted></video>
-    <canvas id="overlay" width="1280" height="720"></canvas>
+    <video id="webcam" width="584" height="480" autoplay muted></video>
+    <canvas id="overlay" width="584" height="480"></canvas>
     <div id="target"></div> <!-- ย้ายเป้าหมายเข้าไปใน webcam-container -->
   </div>
 

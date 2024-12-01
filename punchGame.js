@@ -14,42 +14,81 @@ const resultMessage = document.getElementById("result-message");
 const restartButton = document.getElementById("restart-button");
 const target = document.getElementById("target"); // HTML element สำหรับเป้าหมาย
 
-let punchCooldown = false;
 let targetPosition = { x: 0, y: 0 };
 
 function setRandomTargetPosition() {
-  const webcamContainer = document.getElementById("webcam-container");
-  const areaWidth = webcamContainer.offsetWidth;
-  const areaHeight = webcamContainer.offsetHeight;
+  const canvasRect = canvasElement.getBoundingClientRect(); // ขอบเขตของ canvas
+  const areaWidth = canvasRect.width;
+  const areaHeight = canvasRect.height;
 
-  targetPosition.x = Math.random() * (areaWidth - 50); // -50 เพื่อให้อยู่ในขอบ
-  targetPosition.y = Math.random() * (areaHeight - 50);
+  const margin = 100; // ระยะห่างจากขอบ canvas
+  targetPosition.x = Math.random() * (areaWidth - margin * 2) + margin;
+  targetPosition.y = Math.random() * (areaHeight - margin * 2) + margin;
 
-  target.style.left = `${targetPosition.x}px`;
+  // อัปเดตตำแหน่งของเป้าหมาย
+  target.style.left = `${targetPosition.x}px`; // ใช้พิกัดสัมพัทธ์ใน canvas
   target.style.top = `${targetPosition.y}px`;
 }
 
 function punchDetected(handX, handY) {
   if (!isGameActive) return;
 
-  const distance = Math.sqrt(
-    Math.pow(handX - targetPosition.x, 2) + Math.pow(handY - targetPosition.y, 2)
-  );
+  const canvasRect = canvasElement.getBoundingClientRect();
+  const targetRect = target.getBoundingClientRect();
 
-  if (distance < 50 && health > 0) {
-    health -= 10;
+  // แปลงตำแหน่งมือจาก canvas ไปยัง DOM
+  const adjustedHandX = handX + canvasRect.left;
+  const adjustedHandY = handY + canvasRect.top;
 
-    healthBar.style.width = health + "%";
-    healthNumber.textContent = health;
+  // ขยาย hitbox ของเป้าหมาย
+  const margin = 50; // เพิ่มระยะการตรวจจับ
+  if (
+    adjustedHandX >= targetRect.left - margin &&
+    adjustedHandX <= targetRect.right + margin &&
+    adjustedHandY >= targetRect.top - margin &&
+    adjustedHandY <= targetRect.bottom + margin
+  ) {
+    console.log("Punch detected!");
+    if (health > 0) {
+      health -= 1;
+      healthBar.style.width = health + "%";
+      healthNumber.textContent = health;
 
-    punchSound.play();
-    setRandomTargetPosition();
+      punchSound.play();
+      setRandomTargetPosition();
 
-    if (health <= 0) {
-      endGame(true);
+      if (health <= 0) {
+        endGame(true);
+      }
     }
   }
+
+  // Debug: วาดกรอบเป้าหมาย
+  const canvasScaleX = canvasElement.width / canvasRect.width; // อัตราส่วนการย่อ/ขยายแนวนอน
+  const canvasScaleY = canvasElement.height / canvasRect.height; // อัตราส่วนการย่อ/ขยายแนวตั้ง
+
+  // แปลงตำแหน่งและขนาดของเป้าหมายจาก DOM ไปยัง canvas
+  const targetCanvasX = (targetRect.left - canvasRect.left) * canvasScaleX;
+  const targetCanvasY = (targetRect.top - canvasRect.top) * canvasScaleY;
+  const targetCanvasWidth = targetRect.width * canvasScaleX;
+  const targetCanvasHeight = targetRect.height * canvasScaleY;
+  // Debug: วาดกรอบเป้าหมาย
+  canvasCtx.fillStyle = "rgba(255, 255, 0, 0.5)";
+  canvasCtx.fillRect(
+    targetRect.left - canvasRect.left,
+    targetRect.top - canvasRect.top,
+    targetRect.width,
+    targetRect.height
+  );
+
+  // Debug: วาดจุดตำแหน่งมือ
+  canvasCtx.beginPath();
+  canvasCtx.arc(handX, handY, 10, 0, 2 * Math.PI);
+  canvasCtx.fillStyle = "blue";
+  canvasCtx.fill();
+  canvasCtx.closePath();
 }
+
 
 function startTimer() {
   intervalId = setInterval(() => {
@@ -78,7 +117,6 @@ function resetGame() {
   clearInterval(intervalId);
   setRandomTargetPosition();
   startTimer();
-  punchCooldown = false;
   isGameActive = true;
 }
 
@@ -91,6 +129,10 @@ function endGame(playerWon) {
 
 window.addEventListener('DOMContentLoaded', () => {
   resetGame();
+  if (videoElement.videoWidth && videoElement.videoHeight) {
+    canvasElement.width = videoElement.videoWidth;
+    canvasElement.height = videoElement.videoHeight;
+  }
 });
 
 const videoElement = document.getElementById('webcam');
@@ -112,10 +154,14 @@ hands.onResults(onResults);
 
 const camera = new Camera(videoElement, {
   onFrame: async () => {
+    if (videoElement.videoWidth && videoElement.videoHeight) {
+      canvasElement.width = videoElement.videoWidth;
+      canvasElement.height = videoElement.videoHeight;
+    }
     await hands.send({ image: videoElement });
   },
-  width: 1280,
-  height: 720
+  width: 854,
+  height: 480
 });
 
 camera.start(); // เริ่มกล้อง
@@ -130,9 +176,10 @@ function onResults(results) {
       drawConnectors(canvasCtx, landmarks, HAND_CONNECTIONS, { color: '#00FF00', lineWidth: 2 });
       drawLandmarks(canvasCtx, landmarks, { color: '#FF0000', lineWidth: 4 });
 
-      const wrist = landmarks[0];
-      const handX = wrist.x * canvasElement.width;
-      const handY = wrist.y * canvasElement.height;
+      // ใช้จุดปลายนิ้วชี้แทนข้อมือ
+      const indexFingerTip = landmarks[8]; // จุดปลายนิ้วชี้
+      const handX = indexFingerTip.x * canvasElement.width;
+      const handY = indexFingerTip.y * canvasElement.height;
 
       punchDetected(handX, handY);
     }
@@ -140,7 +187,5 @@ function onResults(results) {
 
   canvasCtx.restore();
 }
-
-
 
 restartButton.addEventListener('click', resetGame);

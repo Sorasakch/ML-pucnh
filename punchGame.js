@@ -121,12 +121,13 @@ function endGame(playerWon) {
 }
 
 window.addEventListener('DOMContentLoaded', () => {
-  resetGame();
   if (videoElement.videoWidth && videoElement.videoHeight) {
     canvasElement.width = videoElement.videoWidth;
     canvasElement.height = videoElement.videoHeight;
   }
+  resetGame();
 });
+
 
 const videoElement = document.getElementById('webcam');
 const canvasElement = document.getElementById('overlay');
@@ -169,7 +170,7 @@ function onResults(results) {
       drawConnectors(canvasCtx, landmarks, HAND_CONNECTIONS, { color: '#00FF00', lineWidth: 2 });
       drawLandmarks(canvasCtx, landmarks, { color: '#FF0000', lineWidth: 4 });
 
-      const indexFingerTip = landmarks[8]; 
+      const indexFingerTip = landmarks[8];
       const handX = indexFingerTip.x * canvasElement.width;
       const handY = indexFingerTip.y * canvasElement.height;
 

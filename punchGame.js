@@ -25,7 +25,6 @@ function setRandomTargetPosition() {
   targetPosition.x = Math.random() * (areaWidth - margin * 2) + margin;
   targetPosition.y = Math.random() * (areaHeight - margin * 2) + margin;
 
-  // อัปเดตตำแหน่งของเป้าหมาย
   target.style.left = `${targetPosition.x}px`; // ใช้พิกัดสัมพัทธ์ใน canvas
   target.style.top = `${targetPosition.y}px`;
 }
@@ -36,11 +35,9 @@ function punchDetected(handX, handY) {
   const canvasRect = canvasElement.getBoundingClientRect();
   const targetRect = target.getBoundingClientRect();
 
-  // แปลงตำแหน่งมือจาก canvas ไปยัง DOM
   const adjustedHandX = handX + canvasRect.left;
   const adjustedHandY = handY + canvasRect.top;
 
-  // ขยาย hitbox ของเป้าหมาย
   const margin = 50; // เพิ่มระยะการตรวจจับ
   if (
     adjustedHandX >= targetRect.left - margin &&
@@ -63,16 +60,13 @@ function punchDetected(handX, handY) {
     }
   }
 
-  // Debug: วาดกรอบเป้าหมาย
   const canvasScaleX = canvasElement.width / canvasRect.width; // อัตราส่วนการย่อ/ขยายแนวนอน
   const canvasScaleY = canvasElement.height / canvasRect.height; // อัตราส่วนการย่อ/ขยายแนวตั้ง
 
-  // แปลงตำแหน่งและขนาดของเป้าหมายจาก DOM ไปยัง canvas
   const targetCanvasX = (targetRect.left - canvasRect.left) * canvasScaleX;
   const targetCanvasY = (targetRect.top - canvasRect.top) * canvasScaleY;
   const targetCanvasWidth = targetRect.width * canvasScaleX;
   const targetCanvasHeight = targetRect.height * canvasScaleY;
-  // Debug: วาดกรอบเป้าหมาย
   canvasCtx.fillStyle = "rgba(255, 255, 0, 0.5)";
   canvasCtx.fillRect(
     targetRect.left - canvasRect.left,
@@ -81,7 +75,6 @@ function punchDetected(handX, handY) {
     targetRect.height
   );
 
-  // Debug: วาดจุดตำแหน่งมือ
   canvasCtx.beginPath();
   canvasCtx.arc(handX, handY, 10, 0, 2 * Math.PI);
   canvasCtx.fillStyle = "blue";
@@ -176,8 +169,7 @@ function onResults(results) {
       drawConnectors(canvasCtx, landmarks, HAND_CONNECTIONS, { color: '#00FF00', lineWidth: 2 });
       drawLandmarks(canvasCtx, landmarks, { color: '#FF0000', lineWidth: 4 });
 
-      // ใช้จุดปลายนิ้วชี้แทนข้อมือ
-      const indexFingerTip = landmarks[8]; // จุดปลายนิ้วชี้
+      const indexFingerTip = landmarks[8]; 
       const handX = indexFingerTip.x * canvasElement.width;
       const handY = indexFingerTip.y * canvasElement.height;
 

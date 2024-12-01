@@ -47,7 +47,7 @@ function punchDetected(handX, handY) {
   ) {
     console.log("Punch detected!");
     if (health > 0) {
-      health -= 1;
+      health -= 3;
       healthBar.style.width = health + "%";
       healthNumber.textContent = health;
 

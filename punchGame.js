@@ -1,7 +1,7 @@
 let health = 100;
 let timeLeft = 60;
 let intervalId;
-let isGameActive = false; // สถานะเกมกำลังดำเนินอยู่
+let isGameActive = false;
 
 // โหลดไฟล์เสียงต่อย
 const punchSound = new Audio('punch_sound.mp3');
@@ -12,21 +12,38 @@ const timerElement = document.getElementById("timer");
 const gameResult = document.getElementById("game-result");
 const resultMessage = document.getElementById("result-message");
 const restartButton = document.getElementById("restart-button");
+const target = document.getElementById("target"); // HTML element สำหรับเป้าหมาย
 
 let punchCooldown = false;
+let targetPosition = { x: 0, y: 0 };
 
-function punchDetected() {
-  if (!isGameActive) return; // หยุดการทำงานหากเกมไม่ได้ดำเนินอยู่
+function setRandomTargetPosition() {
+  const webcamContainer = document.getElementById("webcam-container");
+  const areaWidth = webcamContainer.offsetWidth;
+  const areaHeight = webcamContainer.offsetHeight;
 
-  if (health > 0) {
+  targetPosition.x = Math.random() * (areaWidth - 50); // -50 เพื่อให้อยู่ในขอบ
+  targetPosition.y = Math.random() * (areaHeight - 50);
+
+  target.style.left = `${targetPosition.x}px`;
+  target.style.top = `${targetPosition.y}px`;
+}
+
+function punchDetected(handX, handY) {
+  if (!isGameActive) return;
+
+  const distance = Math.sqrt(
+    Math.pow(handX - targetPosition.x, 2) + Math.pow(handY - targetPosition.y, 2)
+  );
+
+  if (distance < 50 && health > 0) {
     health -= 10;
-    console.log("Health reduced to:", health);
 
     healthBar.style.width = health + "%";
     healthNumber.textContent = health;
 
-    // เล่นเสียงต่อย
     punchSound.play();
+    setRandomTargetPosition();
 
     if (health <= 0) {
       endGame(true);
@@ -59,16 +76,17 @@ function resetGame() {
   gameResult.style.display = 'none';
 
   clearInterval(intervalId);
+  setRandomTargetPosition();
   startTimer();
   punchCooldown = false;
-  isGameActive = true; // เปิดสถานะเกมเมื่อเริ่มใหม่
+  isGameActive = true;
 }
 
 function endGame(playerWon) {
   clearInterval(intervalId);
   const message = playerWon ? 'คุณชนะ! ศัตรูเลือดหมดแล้ว!' : 'หมดเวลาแล้ว! คุณแพ้!';
   showResult(message);
-  isGameActive = false; // ปิดสถานะเกมเมื่อจบ
+  isGameActive = false;
 }
 
 window.addEventListener('DOMContentLoaded', () => {
@@ -84,7 +102,7 @@ const hands = new Hands({
 });
 
 hands.setOptions({
-  maxNumHands: 1,
+  maxNumHands: 2,
   modelComplexity: 1,
   minDetectionConfidence: 0.7,
   minTrackingConfidence: 0.7
@@ -100,7 +118,7 @@ const camera = new Camera(videoElement, {
   height: 480
 });
 
-camera.start();
+camera.start(); // เริ่มกล้อง
 
 function onResults(results) {
   canvasCtx.save();
@@ -109,26 +127,14 @@ function onResults(results) {
 
   if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
     for (const landmarks of results.multiHandLandmarks) {
-      // วาดเส้นเชื่อมและจุดข้อต่อนิ้วมือ
       drawConnectors(canvasCtx, landmarks, HAND_CONNECTIONS, { color: '#00FF00', lineWidth: 2 });
       drawLandmarks(canvasCtx, landmarks, { color: '#FF0000', lineWidth: 4 });
 
       const wrist = landmarks[0];
-      const indexFingerTip = landmarks[8];
-      const thumbTip = landmarks[4];
+      const handX = wrist.x * canvasElement.width;
+      const handY = wrist.y * canvasElement.height;
 
-      // ตรวจจับการกำหมัด
-      const isFist = Math.abs(indexFingerTip.x - thumbTip.x) < 0.05 &&
-        Math.abs(indexFingerTip.y - thumbTip.y) < 0.05;
-
-      if (isFist && !punchCooldown) {
-        punchDetected();
-        punchCooldown = true;
-
-        setTimeout(() => {
-          punchCooldown = false;
-        }, 500);
-      }
+      punchDetected(handX, handY);
     }
   }
 

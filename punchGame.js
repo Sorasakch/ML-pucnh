@@ -1,6 +1,7 @@
 let health = 100;
 let timeLeft = 60;
 let intervalId;
+let isGameActive = false; // สถานะเกมกำลังดำเนินอยู่
 
 // โหลดไฟล์เสียงต่อย
 const punchSound = new Audio('punch_sound.mp3');
@@ -15,6 +16,8 @@ const restartButton = document.getElementById("restart-button");
 let punchCooldown = false;
 
 function punchDetected() {
+  if (!isGameActive) return; // หยุดการทำงานหากเกมไม่ได้ดำเนินอยู่
+
   if (health > 0) {
     health -= 10;
     console.log("Health reduced to:", health);
@@ -58,12 +61,14 @@ function resetGame() {
   clearInterval(intervalId);
   startTimer();
   punchCooldown = false;
+  isGameActive = true; // เปิดสถานะเกมเมื่อเริ่มใหม่
 }
 
 function endGame(playerWon) {
   clearInterval(intervalId);
   const message = playerWon ? 'คุณชนะ! ศัตรูเลือดหมดแล้ว!' : 'หมดเวลาแล้ว! คุณแพ้!';
   showResult(message);
+  isGameActive = false; // ปิดสถานะเกมเมื่อจบ
 }
 
 window.addEventListener('DOMContentLoaded', () => {
